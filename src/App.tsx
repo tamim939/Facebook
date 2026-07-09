@@ -4,121 +4,94 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { StatsHeader } from './components/StatsHeader';
-import { SessionGrid } from './components/SessionGrid';
-import { SessionConfig, SessionInstance, Stats } from './types';
-import { Facebook } from 'lucide-react';
+import { SessionInstance } from './types';
+import { Smartphone, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+import { SessionCell } from './components/SessionCell';
 
 export default function App() {
-  const [config, setConfig] = useState<SessionConfig>({
-    targetUrl: 'https://www.facebook.com/reel/12691481',
-    commentText: 'Great content! Keep it up! 🔥',
-    sessionCount: 8,
-    baseInterval: 60,
-    referrerSpoofing: 'Facebook Social',
-    gridScale: 0.8,
-    staggeredMode: true,
-    activeScroll: true,
-    autoMuted: true,
-  });
-
-  const [stats, setStats] = useState<Stats>({
-    activeProxies: 15,
-    totalLoads: 0,
-    countdown: 18.6,
-  });
-
+  const [scale, setScale] = useState(0.8);
   const [sessions, setSessions] = useState<SessionInstance[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Initialize sessions based on count
-    const newSessions: SessionInstance[] = Array.from({ length: config.sessionCount }).map((_, i) => ({
-      id: `session-${i}`,
-      deviceName: ['iPhone 13', 'Galaxy S24', 'Pixel 8', 'iPad Safari'][i % 4],
+    const newSessions: SessionInstance[] = Array.from({ length: 10 }).map((_, i) => ({
+      id: `device-${i + 1}`,
+      deviceName: `Mobile Device ${i + 1}`,
       profileId: i + 1,
-      status: 'idle',
-      currentStep: 'waiting',
-      lastAction: 'Ready',
     }));
     setSessions(newSessions);
-  }, [config.sessionCount]);
+  }, []);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setSessions(prev => prev.map(session => {
-          // Simulated state machine for automation
-          if (session.currentStep === 'waiting') {
-            return { ...session, currentStep: 'navigating', status: 'running', lastAction: 'Opening Video...' };
-          }
-          if (session.currentStep === 'navigating') {
-            return { ...session, currentStep: 'commenting', lastAction: 'Posting Comment...' };
-          }
-          if (session.currentStep === 'commenting') {
-            return { ...session, currentStep: 'scrolling', lastAction: 'Scrolling to Next...' };
-          }
-          if (session.currentStep === 'scrolling') {
-             return { ...session, currentStep: 'navigating', lastAction: 'Next Video found' };
-          }
-          return session;
-        }));
-      }, 3000); // Cycle every 3 seconds for demo
-    }
-    return () => clearInterval(interval);
-  }, [isRunning]);
-
-  const handleStart = () => setIsRunning(true);
-  const handleStop = () => setIsRunning(false);
+  const reloadAll = () => {
+    window.location.reload();
+  };
 
   return (
-    <div className="flex h-screen w-full bg-[#0a0c10] text-gray-300 overflow-hidden font-sans selection:bg-blue-500/30">
-      <Sidebar 
-        config={config} 
-        setConfig={setConfig} 
-        onStart={handleStart} 
-        onStop={handleStop}
-        isRunning={isRunning}
-        isLoggedIn={isLoggedIn}
-        setIsLoggedIn={setIsLoggedIn}
-      />
-      
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <StatsHeader 
-          stats={stats} 
-          autoMuted={config.autoMuted}
-          onToggleMute={() => setConfig(prev => ({ ...prev, autoMuted: !prev.autoMuted }))}
-        />
-        
-        <main className="flex-1 overflow-y-auto p-6 bg-[#0f1218]">
-          <SessionGrid 
-            sessions={sessions} 
-            config={config}
-          />
-        </main>
-
-        {/* Floating Bottom Bar (Simulated OS Taskbar as seen in image) */}
-        <div className="h-12 bg-[#1a1e26]/80 backdrop-blur-md border-t border-white/5 flex items-center px-4 gap-4">
-          <div className="flex gap-3">
-             <div className="w-6 h-6 rounded bg-blue-600/20 flex items-center justify-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-             </div>
-             <div className="w-6 h-6 rounded hover:bg-white/5 transition-colors"></div>
-             <div className="w-6 h-6 rounded hover:bg-white/5 transition-colors"></div>
+    <div className="flex flex-col h-screen w-full bg-[#0a0c10] text-gray-300 overflow-hidden font-sans">
+      {/* Top Controls */}
+      <header className="h-14 bg-[#11141d] border-b border-white/5 px-6 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+            <Smartphone size={20} className="text-white" />
           </div>
-          <div className="flex-1"></div>
-          <div className="text-[10px] text-gray-500 flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              System Live
-            </span>
-            <span>1:12 PM 7/8/2026</span>
-          </div>
+          <h1 className="text-lg font-bold text-white tracking-tight">Multi-Login Device Manager</h1>
         </div>
-      </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-[#1a1e26] rounded-md border border-white/5 p-1">
+            <button 
+              onClick={() => setScale(Math.max(0.4, scale - 0.1))}
+              className="p-1.5 hover:bg-white/5 rounded text-gray-400"
+            >
+              <ZoomOut size={16} />
+            </button>
+            <span className="px-3 text-xs font-mono text-blue-400">{Math.round(scale * 100)}%</span>
+            <button 
+              onClick={() => setScale(Math.min(1.5, scale + 0.1))}
+              className="p-1.5 hover:bg-white/5 rounded text-gray-400"
+            >
+              <ZoomIn size={16} />
+            </button>
+          </div>
+          
+          <button 
+            onClick={reloadAll}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-bold text-xs transition-all shadow-lg shadow-blue-950/20"
+          >
+            <RotateCcw size={14} />
+            Reset All Sessions
+          </button>
+        </div>
+      </header>
+      
+      {/* Device Grid */}
+      <main className="flex-1 overflow-auto p-8 bg-[#0f1218]">
+        <div 
+          className="grid gap-8 justify-items-center"
+          style={{
+            gridTemplateColumns: `repeat(auto-fill, minmax(${300 * scale}px, 1fr))`,
+          }}
+        >
+          {sessions.map((session) => (
+            <SessionCell 
+              key={session.id} 
+              session={session} 
+              scale={scale} 
+            />
+          ))}
+        </div>
+      </main>
+
+      {/* Footer Info */}
+      <footer className="h-8 bg-[#0a0c10] border-t border-white/5 px-4 flex items-center justify-between text-[10px] text-gray-600 uppercase tracking-widest font-medium">
+        <span>10 Active Virtual Devices</span>
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+            System Online
+          </span>
+          <span>v1.0.0</span>
+        </div>
+      </footer>
     </div>
   );
 }
