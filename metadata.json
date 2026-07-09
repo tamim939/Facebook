@@ -1,0 +1,6 @@
+{
+  "name": "Aether Pro Multiplexer",
+  "description": "A professional session multiplexer for managing multiple Facebook accounts and automated interactions in a grid layout.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
